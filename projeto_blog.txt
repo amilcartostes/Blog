@@ -1,0 +1,928 @@
+Criando um blog com Python e Django
+
+#######################################################################################################################
+#                                                   Instalar                                                          #
+#######################################################################################################################
+#
+#   djando
+#   django-summernote
+#   pillow
+#   mysqlclient-1.4.6-cp39-cp39-win_amd64.whl
+#
+#######################################################################################################################
+#                                               Start the Project                                                     #
+#######################################################################################################################
+#
+#   >django-admin startproject blog .
+#
+#######################################################################################################################
+#                                                 Create the APPS                                                     #
+#######################################################################################################################
+#   APPS
+#      categorias   (sem views e urls) - Categorias dos Posts
+#      posts        (com views e urls) - Posts do BLog
+#      comentarios  (sem views e urls) - Comentários dos Posts
+#      summernotes
+#
+#       > python manage.py startapp categories
+#       > python manage.py startapp posts
+#       > python manage.py startapp comments
+#
+#######################################################################################################################
+#                                          Create Database in MySQL
+#######################################################################################################################
+#
+#   Schema:     blog_db (utf8mb4 - uft8mb4-general_ci)
+#   User:       user_blog@localhost
+#   Password:   8450C@mpeao
+#
+#######################################################################################################################
+#                                           Set Up ./blog/settings
+#######################################################################################################################
+#
+#   IMPORTS SETTINGS:
+#
+#        from django.contrib.messages import constants
+#        from pathlib import Path
+#        import os
+#
+#   APPS SETTINGS:
+#
+#       INSTALLED_APPS = [
+#           'posts',
+#           'categories',
+#           'comments',
+#           'django.contrib.admin',
+#           'django.contrib.auth',
+#           'django.contrib.contenttypes',
+#           'django.contrib.sessions',
+#           'django.contrib.messages',
+#           'django.contrib.staticfiles',
+#       ]
+#
+#   TEMPLATES DIRS SETTINGS:
+#
+#       TEMPLATES = [
+#           {
+#               'BACKEND': 'django.template.backends.django.DjangoTemplates',
+#               'DIRS': [os.path.join(BASE_DIR, 'templates')],
+#               .
+#               .
+#           },
+#       ]
+#
+#   DATABASES SETTINGS MYSQL:
+#
+#        DATABASES = {
+#            'default': {
+#                'ENGINE': 'django.db.backends.mysql',
+#                'NAME': 'blog_db',
+#                'HOST': '127.0.0.1',
+#                'PORT': '3306',
+#                'USER': 'user_blog',
+#                'PASSWORD': '8450C@mpeao',
+#            }
+#        }
+#
+#   TIME ZONE / LANGUAGE SETTINGS:
+#
+#       LANGUAGE_CODE = 'pt-BR'
+#       TIME_ZONE = 'America/Sao_Paulo'
+#
+#   STATICS SETTINGS:
+#
+#       STATIC_URL = '/static/'
+#       STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
+#
+#   MEDIA SETTINGS:
+#
+#       MEDIA_URL = '/media/'
+#       MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+#
+#
+#   MESSAGE TAGS SETTINGS:
+#
+#       MESSAGE_TAGS = {
+#           constants.ERROR: 'alert-danger',
+#           constants.WARNING: 'alert-warning',
+#           constants.DEBUG: 'alert-info',
+#           constants.SUCCESS: 'alert-success',
+#           constants.INFO: 'alert-info',
+#       }
+#
+#######################################################################################################################
+#                                        Set Up ./blog/urls.py
+#######################################################################################################################
+#
+#   Posts only for URL
+#
+#   IMPORTS SETTINGS:
+#
+#        from django.contrib import admin
+#        from django.urls import path, include
+#        from django.conf import settings
+#        from django.conf.urls.static import static
+#
+#   URLPATTERNS SETTINGS:
+#
+#        urlpatterns = [
+#            path('', include('posts.urls')),    <--- Home do Site
+#            path('admin/', admin.site.urls),
+#        ]
+#
+#        urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+#
+#
+#######################################################################################################################
+#                               Create models with the following characteristics:
+#######################################################################################################################
+#
+#   To create the models it is necessary to have the URLs in the Posts
+#   If not, migration is not possible!
+#   The urls.py code depends on the views.py code.
+#   The code of the views.py files will be Classes.
+#   The advantage of using Classes in which the code can be reused through the inheritance system, among others.
+#   The urls.py code must therefore call the classes from the views.py code (callable)
+#
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   Initially create the file: ./posts/urls.py
+#
+#        from django.urls import path
+#        from . import views
+#
+#        urlpatterns = [
+#            path('', views, name='index'),
+#            path('categories/<str:category>', views, name='post_category'),
+#            path('search/', views, name='post_search'),
+#            path('post/<int:pk>', views, name='post_details'),
+#        ]
+#   We will create the following Classes in the ./posts/views.py file
+#
+#        class PostIndex
+#        class PostSearch
+#        class PostCategory
+#        class PostDetails
+#
+#   Starts the file code in ./posts/views.py
+#
+#        from django.shortcuts import render
+#        from django.views.generic.list import ListView
+#        from django.views.generic.edit import UpdateView
+#
+#        class PostIndex(ListView):
+#            pass
+#
+#        class PostSearch(PostIndex):
+#            pass
+#
+#        class PostCategory(PostIndex):
+#            pass
+#
+#        class PostDetails(UpdateView):
+#            pass
+#
+#
+#   The ./post/urls.py code must therefore call the classes from the ./pst/views.py code (callable)
+#
+#        urlpatterns = [
+#            path('', views.PostIndex.as_view, name='index'),
+#            path('categories/<str:category>', views.PostCategory.as_view, name='post_category'),
+#            path('search/', views.PostSearch.as_view, name='post_search'),
+#            path('post/<int:pk>', views.PostDetails.as_view, name='post_details'),
+#        ]
+#
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   Now we can start creating models for Post, Categories and Comments
+#   In each models we will define the database structure for the database tables
+#
+#   Let's start with the Categories because they are independent
+#   You don't need to inherit anything or anything outside
+#
+#        category
+#            id                 IntegerField
+#            name_category      CharField
+#
+#  Open the file ./categories/models.py and enter the following code:
+#
+#        class Categories(models.Model):
+#            name_category = models.CharField(max_length=30)
+#
+#   After creating models.py in categories, create admin.py in categories. (./categories/admin.py)
+#
+#        from django.contrib import admin
+#        from .models import Categories
+#
+#        class CategoryAdmin(admin.ModelAdmin):
+#            list_display = ('id', 'name_category')
+#            list_display_links = ('id', 'name_category')
+#
+#        admin.site.register(Categories, CategoryAdmin)
+#
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   Now let's work on modeling the post data in .post/models.py
+#
+#        post
+#            id                  IntegerField
+#            title_post          CharField
+#            author_post         ForeignKey -> User
+#            data_post           DateTimeField
+#            content_post        TextField
+#            excerpt_post        TextField
+#            category_post       ForeignKey -> Categories
+#            image_post          ImageField
+#            published_post      BooleanField
+#
+#   Now let's write the code from the ./post/admin.py file
+#
+#        from django.contrib import admin
+#        from .models import Post
+#
+#        class PostAdmin(admin.ModelAdmin):
+#            list_display = ('id', 'title_post', 'author_post', 'data_post', 'category_post', 'published_post')
+#            list_editable = ('published_post',)
+#            list_display_links = ('id', 'title_post')
+#
+#        admin.site.register(Post, PostAdmin)
+#
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   Now we are going to prepare the migration of the models to check if there is an error in the code written so far!
+#
+#        >python manage.py makemigrations
+#
+#   If the migration preparation went well, we will now migrate the table models to the MySQL database.
+#
+#        >python manage.py migrate
+#
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   With the tables created in the database we can work in the administrative area of the blog.
+#   We will create a super user to manage this area.
+#
+#        >python manage.py createsuperuser
+#            user: amilcar.tostes
+#            password: 8450C@mpeao
+#
+#   The next step is to run the django web server and check the code for errors!
+#
+#       >python manage.py runserver
+#
+#   If all goes well, enter the administration area and check the features
+#
+#        http://127.0.0.1:8000/admin/
+#
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   Now we are going to edit the models.py and admin.py files for the blog comments section.
+#
+#   Below is the column structure of the comment table that we will create in the database
+#
+#        comments
+#           id                  IntegerField
+#           name_comment        CharField
+#           email_comment       EmailField
+#           comment             TextField
+#           post_comment        ForeignKey -> Post
+#           user_comment        ForeignKey -> User
+#           data_comment        DateTimeField
+#           published_comment   BooleanField
+#
+#   Now let's write the code for .\comments\admin.py
+#
+#        from django.contrib import admin
+#
+#        class CommentAdmin(admin.ModelAdmin):
+#            list_display = ('id', 'name_comment', 'email_comment', 'post_comment', 'data_comment', 'published_comment',)
+#            list_editable = ('published_comment',)
+#            list_display_links = ('id', 'name_comment', 'email_comment',)
+#
+#   Adjusted the files ./comments/models.py and ./comments/admin.py we can prepare the migration.
+#
+#        >python manage.py makemigrations
+#
+#   Then we migrate to the MySQL database
+#
+#        >python manage.py migrate
+#
+#   Run the server and in the blog administration area, check the implementations made in comments.
+#
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   Now let's install Summer-Note - https://github.com/summernote/django-summernote
+#
+#   Insert the following line in ./blog.settings.py
+#
+#       INSTALLED_APPS += ('django_summernotes',)
+#       X_FRAME_OPTIONS = 'SAMEORIGIN'
+#
+#   Insert the following line in ./blog.urls.py
+#
+#      path('summernote/', include('django_summernote.urls')),
+#
+#   After making the above changes, migrate to the MySQL database
+#
+#       python manage.py migrate
+#
+#   Apply summernote only to specific TextField in model
+#   Change the ./posts/admin.py file to work with Summernote
+#
+#       from django.contrib import admin
+#       from .models import Post
+#       from django_summernote.admin import SummernoteModelAdmin
+#
+#       class PostAdmin(SummernoteModelAdmin):
+#           list_display = ('id', 'title_post', 'author_post', 'data_post', 'category_post', 'published_post',)
+#           list_editable = ('published_post',)
+#           list_display_links = ('id', 'title_post',)
+#           summernote_fields = ('content_post',)
+#
+#       admin.site.register(Post, PostAdmin)
+#
+#######################################################################################################################
+#                                      Installing the Templates
+#######################################################################################################################
+#
+#   Create folder:  ./templates
+#   Create folder:  ./templates/static
+#   Create file:    ./templates/base.html
+#
+#   Copy the contents of the index.html file (provided) to ./templates/base.html
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   Create folder:  ./templates/partial
+#   Create file:    ./templates/partial/_head.html
+#   From the code provided to the base.html file, separate the header block and move it to the _head.html file
+#   In the base.html file include the following django command:
+#
+#       {% include 'partial/_head.html'%}
+#
+#   In the _head.html file we do not have to load the static part of the code including the following tag:
+#
+#       {% load static %}
+#
+#   Change the lines of the _base.html code by including in the 'link href' the path to the application's css files
+#
+#   Of:
+#           <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+#           <link href="vendor/bootstrap/css/theme_1564087106285.css" rel="stylesheet">
+#
+#   To:
+#           <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+#           <link href="{% static 'vendor/bootstrap/css/theme_1564087106285.css' %}" rel="stylesheet">
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   Create file:    ./templates/partial/_nav.html
+#
+#   From the code provided to the base.html file, separate the nav block and move it to the _nav.html file
+#   In the base.html file include the following django tag:
+#
+#       {% include 'partial/_nav.html' %}
+#
+#   In the _nav.html file we do not have to load the static part of the code including the following tag:
+#
+#       {% load static %}
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   From: C:\05-CURSOS\17-PHYTON\PYTHON395\Download\Aula 199- Blog\parciais-bootstrap
+#
+#   Copy the _messages.html and _pagination.html files to the ./templates/partial folder.
+#
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   In Page Content in the ./templates/base.html file, delete the _pagination.html block
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   Create file:    ./templates/partial/_footer.html
+#
+#   From the code provided to the base.html file, separate the footer block and move it to the _footer.html file
+#   In the base.html file include the following django tag:
+#
+#       {% include 'partial/_footer.html' %}
+#
+#   In the _footer.html file we do not have to load the static part of the code including the following tag:
+#
+#       {% load static %}
+#
+#   Change the lines of the _footer.html code by including in the 'link href' the path to the application's css files
+#
+#   Of:
+#       <script src="vendor/jquery/jquery.slim.min.js"></script>
+#       <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+#
+#   To:
+#       <script src="{% static 'vendor/jquery/jquery.slim.min.js' %}"></script>
+#       <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   From: C:\05-CURSOS\17-PHYTON\PYTHON395\Download\Aula 199- Blog\html e css
+#
+#   Copy the 'vendor' folder to the ./templates/static folder.
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   To perform an initial test we need to perform the following steps:
+#
+#   A) In the .posts folder create the ./posts/templates folder
+#   B) In the ./posts/templates folder create the ./posts/templates/posts folder
+#   C) And in the ./posts/templates/posts folder create the index.html file
+#   D) The next step is to remove the base.html template in the index.html file with the following tag:
+#
+#       {% extends 'base.html' %}
+#
+#   E) Now let's start working on the code in the ./posts/views.py file
+#   F) Run the server and check if the basic functions of the blog are already working.
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   Now let's move the 'CONTENT' block from the ./templates/base.tml file to the ./posts/templates/posts/index.html file.
+#   In the ./posts/templates/posts/index.html file, insert the tags for the CONTENT block.
+#
+#       {% block content %}
+#       .
+#       .
+#       .
+#       {% endblock %}
+#
+#   Between the two tags insert the CONTENT block code.
+#   At the end of the CONTENT block, insert the HTML code inclusion tag from the ./templates/partial/_paginations.html file
+#
+#       {% include 'partial/_pagination.html' %}
+#
+#   Now, instead of the block removed from the ./templates/base.tml file, insert the following tags:
+#
+#       {% block content %}{% endblock %}
+#
+#   In the PostIndex class in the ./posts/views.html file, insert the following line of code:
+#
+#       paginate_by = 3
+#
+#   Check if the changes made so far have been successful.
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   Now we are going to display the content on the main page of the blog.
+#   For this, we will insert a 'for' tag in the CONTENT block of the file ./posts/templates/posts/index.html.
+#   To do this, we first have to define the name of the object that will be used within the content area.
+#   So let's define this name in the following line of code to be inserted in the ./posts/views.html file
+#
+#       context_object_name = 'posts_objects'
+#
+#   As the defined name we can insert the tags to execute the content block loop.
+#
+#       {% for object in posts_objects %}
+#       .
+#       .
+#       .
+#       {% endfor %}
+#
+#   Check if other posts have been displayed on the main page of the blog.
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   Now we are going to manipulate the code of the ./posts/templates/posts/index.html file to display the content of the posts.
+#   For that we will adjust the names of the fields inside the code:
+#
+#       {% if  object.image_post %}
+#       <a href="{% url 'post_details' object.id %}">
+#       <img class="card-img-top"
+#           src="{{ object.image_post.url }}"
+#           alt="{{ object.title_post }}">
+#       </a>
+#       {% endif %}
+#
+#       <div class="card-body">
+#           <h5 class="card-title">
+#               <a href="{% url 'post_details' object.id %}">
+#                   {{ object.title_post }}
+#               </a>
+#           </h5>
+#           <p class="card-text">{{ object.excerpt_post }}.</p>
+#           .
+#           .
+#
+#   Now let's go to the ./blog.settins.py file and install a Django app on INSTALLED_APPS:
+#
+#       'django.contrib.humanize'
+#
+#   With this application we can display the dates with texts: Today, Yesterday .....
+#
+#   To do so, at the top of the code in the ./posts/templates/posts/index.html file, place the following tag for Django
+#
+#       {% load humanize  %}
+#
+#   Seguindo com as alteração no arquivo index.html
+#
+#           .
+#           .
+#           <p class="card-text">
+#               <small class="text-muted">
+#                   {{ object.data_post | naturalday | title }} |
+#                   {{ object.comments_set.count }} Comentário(s) |
+#                   {{ object.category_post }}</small>
+#           </p>
+#           <div class="text-right">
+#              <a href="{% url 'post_details' object.id %}" class="btn btn-outline-secondary">Ler mais...</a>
+#           </div>
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   Now we will adjust some very important items in the presentation and publication of the posts:
+#
+#   1) We want to change the order of presentation of the posts. The order you want and from the most recent to the oldest.
+#      For that we have to override the query set with method in the file ./posts/views.py
+#
+#       # Override the query set to change the order in which posts are displayed
+#       def get_queryset(self):
+#           qs = super().get_queryset()
+#           qs = qs.order_by('-id')
+#           return qs
+#
+#   2) In the post we want to inform the number of comments published and not the amount of comments in the post.
+#      To do so, we will insert a note in the database query made previously.
+#
+#           qs = qs.annotate(
+#               number_comments=Count(
+#                   Case(
+#                       When(comments__published_comment=True, then=1)
+#                   )
+#            )
+#        )
+#
+#     Now that we have obtained the number of comments published in the post we will change the following line of code
+#     in the file ./posts/templates/posts/index.html
+#
+#            de:
+#                {{ object.comments_set.count }} Comentário(s) |
+#            para:
+#                {{ object.number_comments }} Comentário(s) |
+#
+#   3) Now let's filter in the database query the posts that are published from the posts that are not published
+#      So when we ask the database to order posts we will filter only those that are published
+#
+#               qs = qs.order_by('-id').filter(published_post=True)
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   Adjusting the links in the navigation bar code in the ./templates/partial/_nav.html file
+#
+#       <a class="navbar-brand" href="{% url 'index' %}">Blog do Amilcar</a>
+#       .
+#       <a class="nav-link" href="{% url 'post_category' 'turismo' %}">Turismo</a>
+#       .
+#       <a class="nav-link" href="{% url 'post_category' 'astrofisica' %}">Astrofísica</a>
+#       .
+#       <a class="nav-link" href="{% url 'post_category' 'musica' %}">Música</a>
+#       .
+#       <a class="nav-link" href="{% url 'post_category' 'cultura' %}">Cultura</a>
+#
+#   Adjusting the search field and the entry of the term to be searched
+#
+#       <form class="form-inline my-2 my-lg-0 ml-lg-4" action="{% url 'post_search' %}">
+#           <input name="term" value="{{ request.GET.term }}" class="form-control mr-sm-2" type="search" placeholder="Pesquisar"
+#               aria-label="Search">
+#       </form>
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   In this step we will implement the categories and search
+#
+#   Copy, paste and rename the ./posts/templates/posts/index.html file to post_category.html
+#   Copy, paste and rename the ./posts/templates/posts/index.html file to post_search.html
+#
+#   To identify the title of the pages, we will insert the following tag in the header in the file ./tampletes/base.html
+#
+#       <title>{% block title %}{% endblock %}Blog do Amilcar</title>
+#
+#   Initially in the ./posts/templates/post/post_category.html file we insert the following tag:
+#
+#       {% block title %}Categoria | {% endblock %}
+#
+#   Now we are going to implement the code of the PostCategory class in the ./posts/views file
+#
+#       template_name = 'posts/post_category.html'
+#
+#   Now we are going to implement the code of the PostSearch class in the ./posts/views file
+#
+#       template_name = 'posts/post_search.html'
+#
+#   In the PostCategory class we have implemented the following code to filter posts by category.
+#   The PostCategory class inherits database queries made by the PostIndex class
+#
+#           def get_queryset(self):
+#               qs = super().get_queryset()
+#               # print(self.kwargs)
+#               category = self.kwargs.get('category', None)
+#               if not category:
+#                   return qs
+#               qs = qs.filter(category_post__name_category__iexact=category)
+#               return qs
+#
+#   In the PostSearch class we have implemented the following code to filter posts by category.
+#   The PostSearch class inherits database queries made by the PostIndex class
+#
+#           def get_queryset(self):
+#               qs = super().get_queryset()
+#               # print(self.request.GET.get('term'))
+#               term = self.request.GET.get('term')
+#
+#               if not term:
+#                   return qs
+#
+#               qs = qs.filter(
+#                   Q(title_post__icontains=term) |
+#                   Q(author_post__first_name__iexact=term) |
+#                   Q(data_post__icontains=term) |
+#                   Q(content_post__icontains=term) |
+#                   Q(excerpt_post__icontains=term) |
+#                   Q(category_post__name_category__iexact=term)
+#               )
+#               return qs
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   Now we are going to work to show the details of the posts and to insert comments in the posts.
+#   Initially we are going to create the ./comments/forms.py file.
+#   Let's insert the following code in it:
+#
+#       from django.forms import ModelForm
+#       from .models import Comments
+#
+#       class FormComments(ModelForm):
+#           class Meta:
+#           model =Comments
+#           fields = ('name_comment', 'email_comment', 'comment')
+#
+#   We will start the PostDetails class code in the ./post/views.py file with:
+#
+#       class PostDetails(UpdateView):
+#           template_name = 'posts/post_detail.html'
+#           model = Post
+#           form_class = FormComments
+#
+#   Let's start building the code for the ./posts/templates/posts/post_detail.html file.
+#   Initially we inserted the following django tags:
+#
+#       {% extends 'base.html' %}
+#
+#       {% block content %}
+#
+#       {% endblock %}
+#
+#   Then, we copy the POST block from the post.html file provided by the instructor and paste it inside the post_detail.html content block
+#   Check that the post details page is working statically.
+#
+#   Now that the post details page is working correctly we will replace the static content with dynamic content
+#
+#   The first change is inserted the tags for the title of the post and its excerpt
+#
+#       <h2>{{ post_objects.title_post }}</h2>
+#       <h5>{{ post_objects.excerpt_post }}</h5>
+#
+#   Now we will change the fields of author, date and category of the post
+#
+#       <small>
+#           {{ post_objects.author_post }} | {{ post_objects.data_post }}  | {{ post_objects.category_post }}
+#       </small>
+#
+#   The next step is to change the main image of the post.
+#
+#       {% if post_objects.image_post  %}
+#       <center>
+#           <img class="img-fluid pb-5 " src="{{ post_objects.image_post.url }}" alt="{{ post_objects.title_post }}" align="middle">
+#       </center>
+#       {% endif %}
+#
+#   We will now insert the content of the post with the following tag:
+#
+#       {{ post_objects.content_post | safe }}
+#
+#   Note that a safe tag was created with the aim of randerizing the text edited in summernote
+#
+#   The next step is to insert the comment form
+#
+#   Let's keep the <form method = "POST" action = "# sends_commentary"> and <table class = "table"> and remove the security token from the static form.
+#
+#       <input type="hidden" name="csrfmiddlewaretoken"
+#           value="MUiT5cD1u7raeEOr9w9srr4cbQkYc5OTRnWT1cZcIiYWXL8cJqmAl9bxFc7j26yn">
+#
+#   In its place, insert the security tag for django forms
+#
+#       {% csrf_token %}
+#
+#   Then, remove all this part until the submit button:
+#
+#       <tr>
+#           <th><label for="id_author_name">Author name:</label></th>
+#           <td><input type="text" name="author_name" maxlength="255" required
+#                   id="id_author_name"></td>
+#       </tr>
+#       <tr>
+#           <th><label for="id_email">Email:</label></th>
+#           <td><input type="email" name="email" maxlength="254" required id="id_email"></td>
+#       </tr>
+#       <tr>
+#           <th><label for="id_comment">Comment:</label></th>
+#           <td><textarea name="comment" id="id_comment">
+#               </textarea></td>
+#       </tr>
+#
+#   And in place we will insert the django dynamic form tag.
+#
+#       {{ form }}
+#
+#   Finally, insert the tag to include messages from the comment record.
+#
+#       {% include 'partial/_messages.html' %}
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   Now let's validate the comment form fields within the FormComments class in the ./comments/forms.py file
+#   Enter the following method:
+#
+#       def clean(self):
+#           data = self.cleaned_data
+#           name_data = data.get('name_comment')
+#           email_data = data.get('email_comment')
+#           comment_data = data.get('comment')
+#
+#           if len(name_data) < 8:
+#               self.add_error(
+#                   'name_comment',
+#                   'Nome precisa ter no mínimo oito caracteres.'
+#               )
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   In the PostDetails class of the ./posts/views.py file, we will validate the form with the following method:
+#
+#       def form_valid(self, form):
+#           post = self.get_object()
+#           comment = Comments(**form.cleaned_data)
+#           # Complete the comment table fields provided in which post the comment was made
+#           comment.post_comment = post
+#           # Checks if the user is logged in to enter it as user_comment
+#           if self.request.user.is_authenticated:
+#               comment.user_comment = self.request.user
+#           # Save the comment, send a message to the user and redirect to the detail page of the post
+#           comment.save()
+#           messages.success(self.request, 'Comentario gravado com sucesso!')
+#           return redirect('post_details', pk=post.id)
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   Now we will publish on the detail page of the post only the comments published by the editor.
+#   Let's go to the PostDetails class and insert the following code in the ./posts/views.py:
+#
+#       # Override the get_context_data method
+#       def get_context_data(self, **kwargs):
+#           # Using what you already have in get_context_data
+#           context = super().get_context_data(**kwargs)
+#           # Getting which post we're working on
+#           post = self.get_object()
+#           # Selecting information from the database and injecting it in context
+#           comments = Comments.objects.filter(published_comment=True,
+#                                              post_comment=post.id)
+#           context['comments'] = comments
+#           return context
+#
+#   Insert the django tags in the ./templates/posts/pos_datail.html file
+#
+#       {% if comments %}
+#        <div class="row pt-5">
+#            <div class="col-xl"></div>
+#            <div class="col-xl-8">
+#                <h2 class="my-3">Comentários ({{ comments.count }})</h2>
+#
+#                {% for comment in comments %}
+#                <h5 class="mb-2 mt-5">{{ comment.name_comment}} disse:</h5>
+#                <small class="text-muted">{{ comment.data_comment }}</small>
+#                <p class="mb-1">{{ comment.comment }}</p>
+#                {% endfor %}
+#
+#            </div>
+#            <div class="col-xl"></div>
+#        </div>
+#        {% endif %}
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   Modifying the template code ./templates/posts/post_category.html and ./templates/posts/post_search.html
+#
+#   Since the code for both templates is the same as the code for ./templates/posts/index.html,
+#   Let's change the extension tag
+#   in:
+#       {% extends 'base.html' %}
+#
+#   for:
+#       {% extends 'posts/index.html' %}
+#
+#   Then we removed the entire block of content from the code of the two templates.
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   Another improvement is related to the title of the pages:
+#
+#       ./templates/posts/post_detail.html,     {% block title %}{{ post_objects.title_post }} | {% endblock %}
+#       ./templates/posts/post_search.html,     {% block title %}{{ request.GET.term|title }} | Busca | {% endblock %}
+#       ./templates/posts/post_category.html.   {% block title %}{{ view.kwargs.category|title }} | Categoria | {% endblock %}
+#
+#######################################################################################################################
+#                                        Deploy
+#######################################################################################################################
+#
+#   Now let's start the Deploy of the Blog project
+#
+#   The first thing we are going to do is include the following code in ./blog/settings.py
+#
+#       try:
+#           from .local_settings import *
+#       except:
+#           pass
+#
+#   The next step is to create the ./blog/local_setting.py file
+#
+#   Then copy the following local initializations from the ./blog/setting.py file to the ./blog/local_setting.py file:
+#
+#       DEBUG = True
+#       ALLOWED_HOSTS = []
+#
+#       DATABASES = {
+#           'default': {
+#               'ENGINE': 'django.db.backends.mysql',
+#               'NAME': 'blog_db',
+#               'HOST': '127.0.0.1',
+#               'PORT': '3306',
+#               'USER': 'user_blog',
+#               'PASSWORD': '8450C@mpeao',
+#           }
+#       }
+#
+#   Now let's prepare the ./blog/setting.py file with the SSL settings below:
+#
+#       SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+#       SECURE_SSL_REDIRECT = True
+#       SESSION_COOKIE_SECURE = True
+#       CSRF_COOKIE_SECURE = True
+#
+#   We will put these initializations in the ./blog/local_setting.py file but we will disable them
+#
+#       SECURE_PROXY_SSL_HEADER = None
+#       SECURE_SSL_REDIRECT = None
+#       SESSION_COOKIE_SECURE = None
+#
+#       CSRF_COOKIE_SECURE = None
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   The next step is to collect the statistical files.
+#   For that, we have to insert the following configuration in the ./blog/setting.py file:
+#
+#       STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+#
+#   At the terminal we carry out the following command to collect the static
+#
+#       >python manage.py collectstatic
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   Agora vamos iniciar o GIT para o envio dos arqivos para o repoditório
+#
+#   On Windows, open the Git Bash application and initialize the SSH connection
+#
+#       $ eval `ssh-agent -s`
+#       $ ssh-add ~/.ssh/id_rsa
+#       $ ssh -T git@github.com
+#
+#   In the Windows CMD console, initialize the local repository in the project folder and execute the following commands:
+#
+#       git init
+#       git config --global user.email 'amilcar@quatro.srv.br'
+#       git config --global user.name 'amilcartostes'
+#       git config --list
+#
+#   After creating a remote GITHUB repository for the project we will add a remote connection to GITHUB repository
+#
+#       git remote add Blog https://github.com/amilcartostes/Blog.git
+#       git remote -v
+#
+#   Once this is done, we will compromise the files on GITHUB and we will download them to the Blog project folder.
+#
+#       git pull Blog master
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   With all the local files prepared for deployment on the server, we will add the files and folders, we will commit
+#   them and send them to the remote repository on GITHUB
+#
+git add *
+git commit -am 'Up Load Inicial'
+git push Blog master
+#
