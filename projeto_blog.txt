@@ -922,7 +922,93 @@ Criando um blog com Python e Django
 #   With all the local files prepared for deployment on the server, we will add the files and folders, we will commit
 #   them and send them to the remote repository on GITHUB
 #
-git add *
-git commit -am 'Up Load Inicial'
-git push Blog master
+#       git add *
+#       git commit -am 'Up Load Inicial'
+#       git push Blog master
 #
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   On the server create the blog folder
+#   Create the local repository in the blog folder
+#
+#       git init
+#       git config --global user.email 'amilcar@quatro.srv.br'
+#       git config --global user.name 'amilcartostes'
+#       git config --list
+#
+#   Connect with GitHub
+#
+#       $ eval `ssh-agent -s`
+#       $ ssh-add ~/.ssh/id_rsa
+#       $ ssh -T git@github.com
+#
+#       git remote add Blog https://github.com/amilcartostes/Blog.git
+#       git remote -v
+#
+#   Download Blog Files on Linux Server
+#
+#       git pull Blog master
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   Create the Python virtual environment in the blog folder
+#
+#       $python3.9 -m venv venv
+#
+#   Activate the Python virtual environment
+#
+#       $source venv/bin/activate
+#
+#   Instalar modulos para o Python
+#
+#       pip install django pillow django-summernote mysql_client gunicorn
+#
+#   Note: Ignore the error message "Failed building wheel for django-summernote"
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   Access the server database and create the database and database user for the blog
+#
+#   Enter the DB server database:
+#
+#       sudo mysql -u root
+#
+#   Commands within the database server:
+#
+#       MariaDB [(none)]> USE mysql;
+#       MariaDB [mysql]>  UPDATE user SET plugin='' WHERE User='root';
+#       MariaDB [mysql]>  CREATE DATABASE blog_db CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+#       MariaDB [mysql]>  CREATE USER 'usrblogdb'@'%' IDENTIFIED BY '8450C@mpeao';
+#       MariaDB [mysql]>  GRANT ALL PRIVILEGES ON blog_db.* TO 'usrblogdb'@'%';
+#       MariaDB [mysql]>  FLUSH PRIVILEGES;
+#       MariaDB [mysql]>  Exit;
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   Edit ./blog/settings.py file in the local machine
+#
+#       ALLOWED_HOSTS = ['192.168.0.74', 'blog.lotuskombucha.com.br', 'www.blog.lotuskombucha.com.br']
+#
+#   Adjust parameters for server database access
+#
+#       DATABASES = {
+#           'default': {
+#               'ENGINE': 'django.db.backends.mysql',
+#               'NAME': 'blog_db',
+#               'HOST': '127.0.0.1',
+#               'PORT': '3306',
+#               'USER': 'usrblogdb',
+#               'PASSWORD': '8450C@mpeao',
+#           }
+#       }
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   Now let's export the data from the local database to the remote server database
+#
+#   At the root of the blog on the local machine through the terminal console of Pycharm run the following command:
+#
+#       python manage.py dumpdata --exclude=contenttypes --exclude=auth.Permission > db.json
+#
+
+
