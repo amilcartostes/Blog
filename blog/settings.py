@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-n*36_vdo7p-8#0_doq(l*7=m6%qdw)c9rut@d*57(tpz7z1x*=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['192.168.0.74', 'blog.lotuskombucha.com.br', 'www.blog.lotuskombucha.com.br']
 
 
 # Application definition
@@ -89,7 +89,7 @@ DATABASES = {
         'NAME': 'blog_db',
         'HOST': '127.0.0.1',
         'PORT': '3306',
-        'USER': 'user_blog',
+        'USER': 'usrblogdb',
         'PASSWORD': '8450C@mpeao',
     }
 }
