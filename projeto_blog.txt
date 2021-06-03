@@ -1144,6 +1144,93 @@ Criando um blog com Python e Django
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #
 #   Upload modified files to GitHub
+#   Download the modified files from GitHub to the server in the Blog folder
 #
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   On the server, move the blog.lotuskombucha.com.br file to the /etc/nginx/sites-enabled folder
+#
+#       sudo mv blog.lotuskombucha.com.br /etc/nginx/sites-enabled/blog.lotuskombucha.com.br
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   Configuring the socket service
+#   Source: https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-18-04
+#
+#   1) Create the file:
+#
+#       sudo nano /etc/systemd/system/gunicorn_blog.socket
+#
+#   2) Copy and paste into /etc/systemd/system/gunicorn_blog.socket file (NO EDITION)
+#       [Unit]
+#       Description=gunicorn_blog socket
+#
+#       [Socket]
+#       ListenStream=/run/gunicorn_blog.sock
+#
+#       [Install]
+#       WantedBy=sockets.target
+#
+#   3) Create another file
+#
+#       sudo nano /etc/systemd/system/gunicorn_blog.service
+#
+#   4) Edit, copy and then paste
+#
+#       [Unit]
+#       Description=gunicorn_blog daemon
+#       Requires=gunicorn_blog.socket
+#       After=network.target
+#
+#       [Service]
+#       User=amilcar
+#       Group=www-data
+#       WorkingDirectory=/home/amilcar/blog
+#       ExecStart=/home/amilcar/blog/venv/bin/gunicorn \
+#                 --access-logfile - \
+#                 --workers 3 \
+#                 --bind unix:/run/gunicorn_blog.sock \
+#                 blog.wsgi:application
+#
+#       [Install]
+#       WantedBy=multi-user.target
+#
+#   5) Activating
+#
+#       sudo systemctl start gunicorn_blog.socket
+#       sudo systemctl enable gunicorn_blog.socket
+#
+#   6) Checking
+#
+#       sudo systemctl status gunicorn_blog.socket
+#       sudo systemctl status gunicorn_blog
+#       curl --unix-socket /run/gunicorn_blog.sock localhost
+#       sudo systemctl status gunicorn_blog
+#
+#   7) Finishing
+#
+#       # sudo rm /etc/nginx/sites-enabled/default
+#       sudo systemctl restart nginx
+#       sudo systemctl restart gunicorn_blog
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#                                               Adding filters to the app
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   1) Create a Python package in ./blog/posts/templatetags
+#
+#   2) Create the file: ./blog/posts/templatetags/omfilters.py
+#
+#   3) Write the filter code 'plural_comments' for the plural of the word 'Comentário(s)'
+#
+#   4) Apply the following changes to the /blog/posts/templates/posts/index.html file
+#
+#       a) Inserir a linha
+#          {% load omfilters %}
+#
+#       b) Alterar a Linha de:
+#           {{ object.number_comments }} Comentário(s) |
+#
+#       c) Para:
+#           {{ object.number_comments | plural_comments }} |
 #
