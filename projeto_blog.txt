@@ -1010,5 +1010,140 @@ Criando um blog com Python e Django
 #
 #       python manage.py dumpdata --exclude=contenttypes --exclude=auth.Permission > db.json
 #
-
-
+#   Prepare and upload the db.json file to GitHub along with the project_blog.txt file
+#
+#       git add *
+#       git commit -am "Exportação do Banco de Dados para o GitHub"
+#       git push Blog master
+#
+#   On the server, inside the blog directory, let's download the db.json file from GitHub
+#
+#       git pull Blog master
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   Enter the server database with the following command line:
+#
+#       sudo mysql -u root
+#
+#       MariaDB [(none)]> show databases;
+#
+#       +--------------------+
+#       | Database           |
+#       +--------------------+
+#       | agendadb           |
+#       | blog_db            |
+#       | information_schema |
+#       | mysql              |
+#       | performance_schema |
+#       +--------------------+
+#       5 rows in set (0.000 sec)
+#
+#       MariaDB [(none)]> quit;
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   Verify that all deployments are working as the command on the server:
+#
+#       python manage.py runserver
+#
+#   Error found and fixed
+#
+#   1) Python reported that the MySql client is not installed
+#
+#       pip install mysqlclient
+#
+#   2) Python reported that the usrblogdb user did not have access to the blog_db database
+#
+#       sudo mysql -u root
+#       MariaDB [(none)]> GRANT ALL PRIVILEGES ON blog_db.* TO 'usrblogdb'@'%';
+#       MariaDB [(none)]> FLUSH PRIVILEGES;
+#       MariaDB [(none)]> quit
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   Now we can unify the creation of the tables and the data migration to the database
+#
+#       python manage.py migrate
+#       python manage.py loaddata db.json
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   The db.json file was in Windows-1252 format. To be ported to the server database was converted to utf-8 format
+#
+#   Rename from db.json file to olddb.json and run the following Python script:
+#
+#       import chardet
+#
+#       with open('olddb.json', encoding='windows-1252') as file:
+#           content = file.read()
+#           print(content)
+#
+#       with open('db.json', 'wb') as file1:
+#          file1.write(content.encode('utf-8'))
+#
+#       with open('db.json', 'rb') as file2:
+#           content = file2.read()
+#           encoding = chardet.detect(content)
+#           print(encoding)
+#
+#       with open('olddb.json', 'rb') as file3:
+#           content = file3.read()
+#           encoding = chardet.detect(content)
+#           print(encoding)
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   Verify that all deployments are working as the command on the server:
+#
+#       python manage.py runserver
+#
+#   Generating the keys and certifying the website blog.kombucha.com.br and www.blog.kombucha.com.br
+#
+#       sudo service nginx stop
+#       sudo certbot certonly --standalone -d blog.lotuskombucha.com.br -d www.blog.lotuskombucha.com.br
+#
+#           /etc/letsencrypt/live/blog.lotuskombucha.com.br-0001/fullchain.pem
+#           /etc/letsencrypt/live/blog.lotuskombucha.com.br-0001/privkey.pem
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   On the local machine copy the file nginx-HTTPS.txt to ./blog
+#   Rename the file to the domain name: blog.lotuskombucha.com.br
+#   Open the file in PyCharm and make the following adjustments:
+#
+#       Fix the path for SSL keys:
+#
+#           ssl_certificate /etc/letsencrypt/live/blog.lotuskombucha.com.br-0001/fullchain.pem; # managed by Certbot
+#           ssl_certificate_key /etc/letsencrypt/live/blog.lotuskombucha.com.br-0001/privkey.pem; # managed by Certbot
+#           ssl_trusted_certificate /etc/letsencrypt/live/blog.lotuskombucha.com.br-0001/chain.pem;
+#
+#       Fix the path for access and error log:
+#
+#           access_log off;
+#           #access_log  /var/log/nginx/blog.lotuskombucha.com.br-access.log;
+#           error_log   /var/log/nginx/blog.lotuskombucha.com.br-error.log;
+#
+#       Fix the path of static and media files:
+#
+#           location /static/ {
+#               root /home/amilcar/blog;
+#           }
+#
+#           location /media
+#               alias /home/amilcar/blog/media/;
+#           }
+#
+#       Fix the sock inclusion parameters:
+#
+#           location / {
+#               include proxy_params;
+#               proxy_pass http://unix:/run/gunicorn_blog.sock;
+#           }
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   Upload modified files to GitHub
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
