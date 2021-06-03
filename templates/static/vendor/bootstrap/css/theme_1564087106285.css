@@ -55,6 +55,6 @@ ul.errorlist li {
 }
 */
 
-.form-group textarea {
-    width: 100%;
+.form-group.textarea {
+    width: 95%;
 }
