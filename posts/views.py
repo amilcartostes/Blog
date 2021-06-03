@@ -3,6 +3,7 @@ from django.views.generic.list import ListView
 from django.views.generic.edit import UpdateView
 from django.db.models import Q, Count, Case, When
 from django.contrib import messages
+from django.db import connection
 from .models import Post
 from comments.forms import FormComments
 from comments.models import Comments
@@ -17,6 +18,7 @@ class PostIndex(ListView):
     # Override the query set to change the order in which posts are displayed
     def get_queryset(self):
         qs = super().get_queryset()
+        qs = qs.select_related('category_post')
         qs = qs.order_by('-id').filter(published_post=True)
         qs = qs.annotate(
             number_comments=Count(
@@ -26,6 +28,12 @@ class PostIndex(ListView):
             )
         )
         return qs
+
+    # To monitor the quantities of database queries
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['connection'] = connection
+        return context
 
 
 class PostSearch(PostIndex):

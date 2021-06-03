@@ -1225,12 +1225,58 @@ Criando um blog com Python e Django
 #
 #   4) Apply the following changes to the /blog/posts/templates/posts/index.html file
 #
-#       a) Inserir a linha
+#       a) insert the line
 #          {% load omfilters %}
 #
-#       b) Alterar a Linha de:
+#       b) Change Line from:
 #           {{ object.number_comments }} Comentário(s) |
 #
-#       c) Para:
+#       c) For:
 #           {{ object.number_comments | plural_comments }} |
+#
+#   5) Submit changes to GitHub
+#
+#       git add *
+#       git commit -am "Implatação de filtro para comentário"
+#       git push Blog master
+#
+#   6) Pull changes sent to GitHub to the server
+#
+#       git pull Blog master
+#
+#   7) Reset socket service on server
+#
+#       sudo systemctl restart gunicorn_blog
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#                                  Improving database query performance with select_related
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   https://docs.djangoproject.com/en/3.2/ref/models/querysets/
+#
+#   Returns a QuerySet that will “follow” foreign-key relationships, selecting additional related-object data when it
+#   executes its query. This is a performance booster which results in a single more complex query but means later use
+#   of foreign-key relationships won’t require database queries.
+#
+#   1) Include the following line of code in the get_queryset def of the PostIndex class:
+#
+#       qs = qs.select_related('category_post')
+#
+#   2) Submit changes to GitHub
+#
+#       git add *
+#       git commit -am "Query Performance Improvement"
+#       git push Blog master
+#
+#   3) Pull changes sent to GitHub to the server
+#
+#       git pull Blog master
+#
+#   4) Reset socket service on server
+#
+#       sudo systemctl restart gunicorn_blog
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #
