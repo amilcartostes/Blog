@@ -1472,6 +1472,99 @@ Criando um blog com Python e Django
 #       sudo systemctl restart nginx && sudo systemctl restart gunicorn_blog
 #
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#
+#                               Improving Form Layout with Crispy Forms
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #
+#   https://django-crispy-forms.readthedocs.io/en/latest/install.html
+#
+#   Installing django-crispy-forms
+#
+#      pip install django-crispy-forms
+#
+#   Configure the ./blog/blog/settings.py file
+#
+#       INSTALLED_APPS = (
+#           ...
+#           'crispy_forms',
+#       )
+#
+#   As we are using bootstrap4 configure the ./blog/blog/settings.py file with:
+#
+#       CRISPY_TEMPLATE_PACK = 'bootstrap4'
+#
+#   Insert crispy_forms tag load into template: ./blog/posts/templates/posts/post_detail.htm
+#
+#       {% load crispy_forms_tags %}
+#
+#   Remove the following section of template code ./blog/posts/templates/posts/post_detail.htm
+#
+#       <div class="form-group">
+#           {{ visible_field.label_tag }} <br>
+#           {{ visible_field }}
+#           {{ visible_field.errors }}
+#       </div>
+#
+#   Leaving the following lines of code:
+#
+#       {% for visible_field in form.visible_fields %}
+#            {{ visible_field | as_crispy_field }}
+#       {% endfor %}
+#
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#                          Improving the security of access to the blog's administrative page
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+#   Blocking blog access page after a number of failed login attempts
+#
+#       https://django-axes.readthedocs.io/en/latest/2_installation.html
+#
+#   Axes is easy to install from the PyPI package:
+#
+#       pip install django-axes
+#
+#   1) Add axes to your INSTALLED_APPS: ./blog/blog/settings.py file
+#
+#       INSTALLED_APPS = [
+#           'django.contrib.admin',
+#           'django.contrib.auth',
+#           'django.contrib.contenttypes',
+#           'django.contrib.sessions',
+#           'django.contrib.messages',
+#           'django.contrib.staticfiles',
+#
+#           # Axes app can be in any position in the INSTALLED_APPS list.
+#           'axes',
+#       ]
+#
+#   2) Add axes.backends.AxesBackend to the top of AUTHENTICATION_BACKENDS:
+#
+#       AUTHENTICATION_BACKENDS = [
+#           # AxesBackend should be the first backend in the AUTHENTICATION_BACKENDS list.
+#           'axes.backends.AxesBackend',
+#
+#           # Django ModelBackend is the default authentication backend.
+#           'django.contrib.auth.backends.ModelBackend',
+#       ]
+#
+#       AXES_FAILURE_LIMIT = 5
+#
+#   3) Add axes.middleware.AxesMiddleware to your list of MIDDLEWARE:
+#
+#           # AxesMiddleware should be the last middleware in the MIDDLEWARE list.
+#           # It only formats user lockout messages and renders Axes lockout responses
+#           # on failed user authentication attempts from login views.
+#           # If you do not want Axes to override the authentication response
+#           # you can skip installing the middleware and use your own views.
+#
+#           'axes.middleware.AxesMiddleware',
+#
+#   4) Run python manage.py check to check the configuration.
+#
+#   5) Run python manage.py migrate to sync the database.
+#
+#   Resetting attempts from command line
+#
+#       python manage.py axes_reset will reset all lockouts and access records.
+#       python manage.py axes_reset_ip [ip ...] will clear lockouts and records for the given IP addresses.
+#       python manage.py axes_reset_username [username ...] will clear lockouts and records for the given usernames.
+#       python manage.py axes_reset_logs (age) will reset (i.e. delete) AccessLog records that are older than the given age where the default is 30 days.
